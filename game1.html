@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Say What You See</title>
+    <style>
+        /* Basic styling for the HTML elements in dark mode */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            display: flex;
+            flex-direction: row;
+            background-color: #121212;
+            color: #ffffff;
+        }
+        .content {
+            flex: 1;
+        }
+        .sidebar {
+            width: 250px;
+            margin-left: 20px;
+            padding: 10px;
+            border: 1px solid #333;
+            box-shadow: 2px 2px 5px rgba(255, 255, 255, 0.1);
+            background-color: #1e1e1e;
+            display: block; /* Default to showing sidebar */
+        }
+        .sidebar.hidden {
+            display: none; /* Hide sidebar */
+        }
+        img {
+            max-width: 100%;
+            height: auto;
+        }
+        .toggle-btn {
+            margin: 1px 0;
+            padding: 5px 10px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        .toggle-btn:hover {
+            background-color: #0056b3;
+        }
+        #completedImage {
+            display: none; /* Hide by default */
+        }
+        .disabled {
+            pointer-events: none; /* Disable clicks */
+            opacity: 0.5; /* Make input look disabled */
+        }
+        input, button {
+            background-color: #333;
+            color: white;
+            border: 1px solid #444;
+            border-radius: 3px;
+        }
+        input::placeholder {
+            color: #bbb;
+        }
+        input:focus, button:focus {
+            outline: none;
+            border-color: #007BFF;
+        }
+        label {
+            color: #bbb;
+        }
+        p {
+            color: #bbb;
+        }
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <audio id="background-audio" loop>
+        <source src="BackgroundMusic.mp3" type="audio/mpeg">
+        <source src="BackgroundMusic.ogg" type="audio/ogg">
+        Your browser does not support the audio element.
+    </audio>
+    <div id="mainMenu" class="content">
+        <h1>Say What You See</h1>
+        <p>Welcome to Say What You See! Try to guess all the items in the images without repeating yourself.</p>
+        <button id="startGameBtn" class="toggle-btn">Start Game</button>
+    </div>
+
+    <div id="gameContent" class="content hidden">
+        <h1>Say What You See:</h1>
+        <p>Welcome to Say What You See! Try to guess all the items in the images without repeating yourself.</p>
+        
+        <div id="game">
+            <img id="image" src="" alt="Current Image">
+            <div>
+                <label for="response">Say what you see:</label>
+                <input type="text" id="response" placeholder="Enter your guess here">
+                <button id="submitBtn" onclick="checkPrompt()">Submit</button>
+            </div>
+            <p id="message"></p>
+            <p>Lives: <span id="lives">5</span></p>
+            <p>Score: <span id="score">0</span></p>
+            <p>Items remaining: <span id="items">23</span></p>
+            <p>Time: <span id="timer">00:00:00</span></p> <!-- Timer display -->
+        </div>
+        <button class="toggle-btn" onclick="toggleDebug()">Toggle Debug Info</button>
+    </div>
+
+    <div id="debugSidebar" class="sidebar hidden">
+        <h2>Debug Info</h2>
+        <p><strong>Current Image:</strong> <span id="currentImage"></span></p>
+        <p><strong>Guessed Items:</strong> <span id="guessedItems"></span></p>
+        <p><strong>Item List:</strong> <span id="itemList"></span></p>
+        <p><strong>Items1:</strong> <span id="items1"></span></p>
+        <p><strong>Items2:</strong> <span id="items2"></span></p>
+        <p><strong>Items3:</strong> <span id="items3"></span></p>
+        <p><strong>Items4:</strong> <span id="items4"></span></p>
+        <p><strong>Lives:</strong> <span id="debugLives"></span></p>
+        <p><strong>Score:</strong> <span id="debugScore"></span></p>
+        <p><strong>Items Remaining:</strong> <span id="debugItems"></span></p>
+    </div>
+
+    <img id="completedImage" src="Completed.png" alt="Game Completed">
+
+    <script>
+        // Arrays to hold images and items for each section
+        let images = ["Section1.png", "Section2.png", "Section3.png", "Section4.png"];
+        let items1 = ["key", "coffee", "box", "padlock", "flower", "earth", "magnet", "rainbow"];
+        let items2 = ["earth", "sun", "basketball", "phone", "football", "moon", "coffee", "table", "tree", "box", "chair", "padlock", "rainbow"];
+        let items3 = ["coffee", "money", "magnet", "rainbow", "star", "key", "bible", "moon"];
+        let items4 = ["star", "calculator", "bible", "football", "money", "sun", "car", "basketball", "flower", "robin", "house", "table"];
+        const similaritems = ["stars", "crate", "cup", "tea", "mug", "bird", "cash", "ball", "keys", "lock", "smartphone", "planet", "crescent"];
+        
+        // Variables to track game state
+        let guesseditems = [];
+        let lives = 5;
+        let score = 0;
+        let items = 23;
+        let complete = false;
+        let itemlist = [];
+        let currentImage = "";
+
+        // Timer variables
+        let startTime;
+        let timerInterval;
+
+        // Function to start the timer
+        function startTimer() {
+            startTime = Date.now();
+            timerInterval = setInterval(updateTimer, 1000);
+        }
+
+        // Function to stop the timer
+        function stopTimer() {
+            clearInterval(timerInterval);
+        }
+
+        // Function to update the timer display
+        function updateTimer() {
+            const elapsedTime = Date.now() - startTime;
+            const seconds = Math.floor((elapsedTime / 1000) % 60);
+            const minutes = Math.floor((elapsedTime / (1000 * 60)) % 60);
+            const hours = Math.floor((elapsedTime / (1000 * 60 * 60)) % 24);
+            document.getElementById('timer').textContent = `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
+        }
+
+        // Helper function to format numbers as two digits
+        function pad(number) {
+            return number.toString().padStart(2, '0');
+        }
+
+        // Function to get a random image and display it
+        function getImage() {
+            // Filter out images with empty item lists
+            let availableImages = images.filter((image) => {
+                switch (image) {
+                    case "Section1.png":
+                        return items1.length > 0;
+                    case "Section2.png":
+                        return items2.length > 0;
+                    case "Section3.png":
+                        return items3.length > 0;
+                    case "Section4.png":
+                        return items4.length > 0;
+                    default:
+                        return false;
+                }
+            });
+
+            // Ensure there are available images left
+            if (availableImages.length === 0) {
+                showCompletionImage();
+                return "";
+            }
+
+            // Select a new image different from the current one
+            let newImage = availableImages[Math.floor(Math.random() * availableImages.length)];
+            while (newImage === currentImage && availableImages.length > 1) {
+                newImage = availableImages[Math.floor(Math.random() * availableImages.length)];
+            }
+
+            document.getElementById('image').src = newImage;
+            currentImage = newImage;
+            updateDebugInfo();
+            return newImage;
+        }
+
+        function checkPrompt() {
+            if (document.getElementById('response').value != "") {
+                promptUser()
+            }
+        }
+
+        // Function to handle user input and update game state
+        function promptUser() {
+            if (complete) return; // Do nothing if game is complete or nothing entered
+
+            const response = document.getElementById('response').value.toLowerCase();
+            const messageElement = document.getElementById('message');
+
+            if (guesseditems.includes(response)) {
+                // If the item has already been guessed
+                messageElement.textContent = "You have already seen this";
+                lives--;
+            } else if (itemlist.includes(response)) {
+                // If the item is in the current image
+                itemlist.splice(itemlist.indexOf(response), 1);
+                guesseditems.push(response);
+                score++;
+                items--;
+
+                // Remove the guessed item from all item lists
+                removeItemFromAllLists(response);
+
+                // Remove images with empty item lists
+                checkEmptyLists();
+
+                messageElement.textContent = "You found something!";
+            } else if (similaritems.includes(response)) {
+                // If the item is similar but not correct
+                messageElement.textContent = "Use a different word or be more specific";
+            } else {
+                // If the item is not in the image
+                messageElement.textContent = "Not in the image";
+                lives--;
+            }
+
+            // Update the displayed game state
+            document.getElementById('lives').textContent = lives;
+            document.getElementById('score').textContent = score;
+            document.getElementById('items').textContent = items;
+
+            // Check if the game is over
+            if (lives <= 0) {
+                complete = true;
+                messageElement.textContent = "You have ran out of lives.";
+                document.getElementById('image').src = ""; // Hide image
+                showGameOverImage();
+                return;
+            }
+
+            // Check if all item lists are empty
+            if (areAllListsEmpty()) {
+                complete = true;
+                showCompletionImage();
+                return;
+            }
+
+            // Clear the input field
+            document.getElementById('response').value = "";
+
+            // Display a new image
+            initializeGame();
+        }
+
+        // Function to remove an item from all item lists
+        function removeItemFromAllLists(item) {
+            [items1, items2, items3, items4].forEach((list) => {
+                const index = list.indexOf(item);
+                if (index > -1) {
+                    list.splice(index, 1);
+                }
+            });
+        }
+
+        // Function to check and remove images with empty item lists
+        function checkEmptyLists() {
+            images = images.filter((image) => {
+                switch (image) {
+                    case "Section1.png":
+                        return items1.length > 0;
+                    case "Section2.png":
+                        return items2.length > 0;
+                    case "Section3.png":
+                        return items3.length > 0;
+                    case "Section4.png":
+                        return items4.length > 0;
+                    default:
+                        return false;
+                }
+            });
+
+            // If no images are left, handle completion
+            if (images.length === 0) {
+                showCompletionImage();
+            }
+        }
+
+        // Function to show the completion image
+        function showCompletionImage() {
+            document.getElementById('image').src = "Completed.png";
+            document.getElementById('response').classList.add('disabled'); // Disable input
+            document.getElementById('submitBtn').disabled = true; // Disable submit button
+            document.getElementById('background-audio').pause();
+            stopTimer();
+        }
+
+        // Function to show the gameover image
+        function showGameOverImage() {
+            document.getElementById('image').src = "GameOver.png";
+            document.getElementById('response').classList.add('disabled'); // Disable input
+            document.getElementById('submitBtn').disabled = true; // Disable submit button
+            document.getElementById('background-audio').pause();
+            stopTimer();
+        }
+
+        // Function to check if all item lists are empty
+        function areAllListsEmpty() {
+            return items1.length === 0 && items2.length === 0 && items3.length === 0 && items4.length === 0;
+        }
+
+        // Function to initialize the game
+        function initializeGame() {
+            const image = getImage();
+
+            // Set the item list based on the current image
+            switch (image) {
+                case "Section1.png":
+                    itemlist = items1.slice();
+                    break;
+                case "Section2.png":
+                    itemlist = items2.slice();
+                    break;
+                case "Section3.png":
+                    itemlist = items3.slice();
+                    break;
+                case "Section4.png":
+                    itemlist = items4.slice();
+                    break;
+                default:
+                    itemlist = [];
+                    break;
+            }
+
+            updateDebugInfo();
+        }
+
+        // Function to update debug info display
+        function updateDebugInfo() {
+            document.getElementById('currentImage').textContent = currentImage;
+            document.getElementById('guessedItems').textContent = guesseditems.join(', ');
+            document.getElementById('itemList').textContent = itemlist.join(', ');
+            document.getElementById('items1').textContent = items1.join(', ');
+            document.getElementById('items2').textContent = items2.join(', ');
+            document.getElementById('items3').textContent = items3.join(', ');
+            document.getElementById('items4').textContent = items4.join(', ');
+            document.getElementById('debugLives').textContent = lives;
+            document.getElementById('debugScore').textContent = score;
+            document.getElementById('debugItems').textContent = items;
+        }
+
+        // Function to toggle the debug sidebar
+        function toggleDebug() {
+            const debugSidebar = document.getElementById('debugSidebar');
+            debugSidebar.classList.toggle('hidden');
+        }
+
+        // Function to handle Enter key press
+        function handleKeyPress(event) {
+            if (event.key === 'Enter' && document.getElementById('response').value != "") {
+                event.preventDefault(); // Prevent default form submission
+                promptUser(); // Submit guess
+            }
+        }
+
+        // Add event listener for Enter key press
+        document.getElementById('response').addEventListener('keypress', handleKeyPress);
+
+        // Start the game when the start button is clicked
+        document.getElementById('startGameBtn').addEventListener('click', function() {
+            document.getElementById('mainMenu').classList.add('hidden');
+            document.getElementById('gameContent').classList.remove('hidden');
+            document.getElementById('debugSidebar').classList.remove('hidden');
+            document.getElementById('background-audio').play();
+            startTimer();
+            initializeGame();
+        });
+    </script>
+</body>
+</html>
