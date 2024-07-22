@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Memory Game</title>
+    <style>
+        body {
+            background-color: #121212;
+            color: #ffffff;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+        }
+        #game-container {
+            text-align: center;
+            display: none;
+        }
+        #menu-container {
+            text-align: center;
+        }
+        #image-display {
+            max-width: 300px;
+            max-height: 300px;
+        }
+        .button {
+            padding: 10px 20px;
+            margin: 10px;
+            background-color: #1e88e5;
+            border: none;
+            color: #ffffff;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .button:hover {
+            background-color: #1565c0;
+        }
+    </style>
+</head>
+<body>
+    <audio id="background-audio" loop>
+        <source src="BackgroundMusic.mp3" type="audio/mpeg">
+        <source src="BackgroundMusic.ogg" type="audio/ogg">
+        Your browser does not support the audio element.
+    </audio>
+    <div id="menu-container">
+        <h1>Image Memory Game</h1>
+        <button class="button" onclick="startGame()">Start Game</button>
+    </div>
+    <div id="game-container">
+        <h1>Image Memory Game</h1>
+        <div id="score">Score: 0</div>
+        <img id="image-display" src="" alt="Image">
+        <div>
+            <button class="button" onclick="userResponse('yes')">I have seen this before</button>
+            <button class="button" onclick="userResponse('no')">I have not seen this before</button>
+        </div>
+        <div id="result"></div>
+    </div>
+    <script>
+        const images = [
+            "1.png", "2.png", "3.png", "4.png", "5.png", 
+            "6.png", "7.png", "8.png", "9.png", "10.png",
+            "11.png", "12.png", "13.png", "14.png", "15.png",
+            "16.png", "17.png", "18.png", "19.png", "20.png"
+        ];
+        let imagesCopy = ["1.png", "2.png", "3.png", "4.png", "5.png", 
+            "6.png", "7.png", "8.png", "9.png", "10.png",
+            "11.png", "12.png", "13.png", "14.png", "15.png",
+            "16.png", "17.png", "18.png", "19.png", "20.png"
+	];
+        let seenImages = [];
+        let score = 0;
+        let lost = false;
+        let currentImage;
+
+        function startGame() {
+            document.getElementById('menu-container').style.display = 'none';
+            document.getElementById('game-container').style.display = 'block';
+            document.getElementById('background-audio').play();
+            currentImage = displayImage();
+        }
+
+        function displayImage() {
+            if (!imagesCopy.length) {
+                document.getElementById('result').innerText = "You win\nPerfect Score: " + score;
+		document.getElementById('background-audio').pause();
+                lost = true;
+                return;
+            }
+
+            const randomIndex = Math.floor(Math.random() * images.length);
+            const selectedImage = images[randomIndex];
+            document.getElementById('image-display').src = selectedImage;
+            return selectedImage;
+        }
+
+        function userResponse(response) {
+            if (lost) return;
+
+            if (response === "yes") {
+                if (seenImages.includes(currentImage)) {
+                    score++;
+                } else {
+                    document.getElementById('result').innerText = "GameOver\nFinal Score: " + score;
+		    document.getElementById('background-audio').pause();
+                    lost = true;
+                    return;
+                }
+            } else if (response === "no") {
+                if (!seenImages.includes(currentImage)) {
+                    score++;
+                } else {
+                    document.getElementById('result').innerText = "GameOver\nFinal Score: " + score;
+		    document.getElementById('background-audio').pause();
+                    lost = true;
+                    return;
+                }
+            }
+
+            seenImages.push(currentImage);
+            imagesCopy = imagesCopy.filter(image => image !== currentImage);
+
+            document.getElementById('score').innerText = "Score: " + score;
+
+            currentImage = displayImage();
+        }
+    </script>
+</body>
+</html>
