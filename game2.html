@@ -2,7 +2,6 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Word Memory Game</title>
     <style>
         body {
@@ -59,16 +58,16 @@
     </div>
     <script>
         const words = ["algorithm", "function", "variable", "loop", "conditional",
-    	    "syntax", "array", "dictionary", "tuple", "list",
-    	    "string", "integer", "float", "boolean", "object",
-    	    "class", "method", "inheritance", "polymorphism", "apple"
+            "syntax", "array", "dictionary", "tuple", "list",
+            "string", "integer", "float", "boolean", "object",
+            "class", "method", "inheritance", "polymorphism", "apple"
         ];
 
         let wordsCopy = ["algorithm", "function", "variable", "loop", "conditional",
-    	    "syntax", "array", "dictionary", "tuple", "list",
-    	    "string", "integer", "float", "boolean", "object",
-    	    "class", "method", "inheritance", "polymorphism", "apple"
-	];
+            "syntax", "array", "dictionary", "tuple", "list",
+            "string", "integer", "float", "boolean", "object",
+            "class", "method", "inheritance", "polymorphism", "apple"
+        ];
         let seenWords = [];
         let score = 0;
         let lost = false;
@@ -84,7 +83,7 @@
         function displayWord() {
             if (!wordsCopy.length) {
                 document.getElementById('result').innerText = "You win\nPerfect Score: " + score;
-		document.getElementById('background-audio').pause();
+                document.getElementById('background-audio').pause();
                 lost = true;
                 return;
             }
@@ -103,7 +102,7 @@
                     score++;
                 } else {
                     document.getElementById('result').innerText = "Game Over\nFinal Score: " + score;
-		    document.getElementById('background-audio').pause();
+                    document.getElementById('background-audio').pause();
                     lost = true;
                     return;
                 }
@@ -112,7 +111,7 @@
                     score++;
                 } else {
                     document.getElementById('result').innerText = "Game Over\nFinal Score: " + score;
-		    document.getElementById('background-audio').pause();
+                    document.getElementById('background-audio').pause();
                     lost = true;
                     return;
                 }
