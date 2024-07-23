@@ -62,14 +62,25 @@
                     return response.text();
                 })
                 .then(data => {
-                    document.getElementById('game-container').innerHTML = data;
-                    document.getElementById('game-container').style.display = 'block';
+                    const gameContainer = document.getElementById('game-container');
+                    gameContainer.innerHTML = data;
+                    gameContainer.style.display = 'block';
+                    executeScripts(gameContainer);
                 })
                 .catch(error => {
                     console.error('Error loading the game:', error);
                     document.getElementById('game-container').innerHTML = `<p>Sorry, there was an error loading the game: ${error.message}</p>`;
                     document.getElementById('game-container').style.display = 'block';
                 });
+        }
+
+        function executeScripts(container) {
+            const scripts = container.getElementsByTagName('script');
+            for (let i = 0; i < scripts.length; i++) {
+                const script = document.createElement('script');
+                script.textContent = scripts[i].textContent;
+                document.body.appendChild(script).parentNode.removeChild(script);
+            }
         }
     </script>
 </body>
