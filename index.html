@@ -38,6 +38,11 @@
         .button:hover {
             background-color: #1565c0;
         }
+        iframe {
+            border: none;
+            width: 100%;
+            height: 100%;
+        }
     </style>
 </head>
 <body>
@@ -48,39 +53,16 @@
         <button class="button" onclick="loadGame('game3.html')">Game 3</button>
     </div>
     <div id="game-container">
-        <!-- Game content will be loaded here -->
+        <iframe id="game-frame"></iframe>
     </div>
 
     <script>
         function loadGame(gameUrl) {
             document.getElementById('menu-container').style.display = 'none';
-            fetch(gameUrl)
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error(`Network response was not ok: ${response.statusText}`);
-                    }
-                    return response.text();
-                })
-                .then(data => {
-                    const gameContainer = document.getElementById('game-container');
-                    gameContainer.innerHTML = data;
-                    gameContainer.style.display = 'block';
-                    executeScripts(gameContainer);
-                })
-                .catch(error => {
-                    console.error('Error loading the game:', error);
-                    document.getElementById('game-container').innerHTML = `<p>Sorry, there was an error loading the game: ${error.message}</p>`;
-                    document.getElementById('game-container').style.display = 'block';
-                });
-        }
-
-        function executeScripts(container) {
-            const scripts = container.querySelectorAll('script');
-            scripts.forEach(oldScript => {
-                const newScript = document.createElement('script');
-                newScript.textContent = oldScript.textContent;
-                document.body.appendChild(newScript).parentNode.removeChild(newScript);
-            });
+            const gameContainer = document.getElementById('game-container');
+            const gameFrame = document.getElementById('game-frame');
+            gameFrame.src = gameUrl;
+            gameContainer.style.display = 'block';
         }
     </script>
 </body>
