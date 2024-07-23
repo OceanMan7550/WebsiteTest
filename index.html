@@ -75,12 +75,17 @@
         }
 
         function executeScripts(container) {
-            const scripts = container.getElementsByTagName('script');
-            for (let i = 0; i < scripts.length; i++) {
-                const script = document.createElement('script');
-                script.textContent = scripts[i].textContent;
-                document.body.appendChild(script).parentNode.removeChild(script);
-            }
+            const scripts = container.querySelectorAll('script');
+            scripts.forEach(oldScript => {
+                const newScript = document.createElement('script');
+                if (oldScript.src) {
+                    newScript.src = oldScript.src;
+                } else {
+                    newScript.textContent = oldScript.textContent;
+                }
+                document.body.appendChild(newScript);
+                document.body.removeChild(newScript);
+            });
         }
     </script>
 </body>
