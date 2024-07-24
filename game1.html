@@ -24,7 +24,7 @@
             border: 1px solid #333;
             box-shadow: 2px 2px 5px rgba(255, 255, 255, 0.1);
             background-color: #1e1e1e;
-            display: none; /* Default to showing sidebar */
+            display: block; /* Default to showing sidebar */
         }
         .sidebar.hidden {
             display: none; /* Hide sidebar */
@@ -392,7 +392,6 @@
         document.getElementById('startGameBtn').addEventListener('click', function() {
             document.getElementById('mainMenu').classList.add('hidden');
             document.getElementById('gameContent').classList.remove('hidden');
-            document.getElementById('debugSidebar').classList.remove('hidden');
             document.getElementById('background-audio').play();
             startTimer();
             initializeGame();
