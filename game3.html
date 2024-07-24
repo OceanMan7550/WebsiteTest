@@ -39,6 +39,17 @@
         .button:hover {
             background-color: #1565c0;
         }
+        #response-buttons {
+            display: flex;
+            flex-direction: row;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        #try-again-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
     </style>
 </head>
 <body>
@@ -55,9 +66,12 @@
         <h1>Image Memory Game</h1>
         <div id="score">Score: 0</div>
         <img id="image-display" src="" alt="Image">
-        <div>
+        <div id="response-buttons">
             <button class="button" onclick="userResponse('yes')">I have seen this before</button>
             <button class="button" onclick="userResponse('no')">I have not seen this before</button>
+        </div>
+        <div id="try-again-container">
+            <button class="button" id="try-again-button" style="display: none;" onclick="tryAgain()">Try Again</button>
         </div>
         <div id="result"></div>
     </div>
@@ -68,15 +82,12 @@
             "11.png", "12.png", "13.png", "14.png", "15.png",
             "16.png", "17.png", "18.png", "19.png", "20.png"
         ];
-        let imagesCopy = ["1.png", "2.png", "3.png", "4.png", "5.png", 
-            "6.png", "7.png", "8.png", "9.png", "10.png",
-            "11.png", "12.png", "13.png", "14.png", "15.png",
-            "16.png", "17.png", "18.png", "19.png", "20.png"
-	];
+        let imagesCopy = [...images];
         let seenImages = [];
         let score = 0;
         let lost = false;
         let currentImage;
+        let lastImage = null;
 
         function startGame() {
             document.getElementById('menu-container').style.display = 'none';
@@ -87,15 +98,18 @@
 
         function displayImage() {
             if (!imagesCopy.length) {
-                document.getElementById('result').innerText = "You win\nPerfect Score: " + score;
-		document.getElementById('background-audio').pause();
-                lost = true;
+                endGame("You win\nPerfect Score: " + score);
                 return;
             }
 
-            const randomIndex = Math.floor(Math.random() * images.length);
-            const selectedImage = images[randomIndex];
+            let selectedImage;
+            do {
+                const randomIndex = Math.floor(Math.random() * images.length);
+                selectedImage = images[randomIndex];
+            } while (selectedImage === lastImage);
+
             document.getElementById('image-display').src = selectedImage;
+            lastImage = selectedImage;
             return selectedImage;
         }
 
@@ -106,18 +120,14 @@
                 if (seenImages.includes(currentImage)) {
                     score++;
                 } else {
-                    document.getElementById('result').innerText = "GameOver\nFinal Score: " + score;
-		    document.getElementById('background-audio').pause();
-                    lost = true;
+                    endGame("Game Over\nFinal Score: " + score);
                     return;
                 }
             } else if (response === "no") {
                 if (!seenImages.includes(currentImage)) {
                     score++;
                 } else {
-                    document.getElementById('result').innerText = "GameOver\nFinal Score: " + score;
-		    document.getElementById('background-audio').pause();
-                    lost = true;
+                    endGame("Game Over\nFinal Score: " + score);
                     return;
                 }
             }
@@ -127,6 +137,28 @@
 
             document.getElementById('score').innerText = "Score: " + score;
 
+            currentImage = displayImage();
+        }
+
+        function endGame(message) {
+            document.getElementById('result').innerText = message;
+            document.getElementById('background-audio').pause();
+            document.getElementById('response-buttons').style.display = 'none';
+            document.getElementById('try-again-button').style.display = 'inline-block';
+            lost = true;
+        }
+
+        function tryAgain() {
+            score = 0;
+            lost = false;
+            seenImages = [];
+            imagesCopy = [...images];
+            lastImage = null;
+            document.getElementById('score').innerText = "Score: " + score;
+            document.getElementById('result').innerText = "";
+            document.getElementById('response-buttons').style.display = 'flex';
+            document.getElementById('try-again-button').style.display = 'none';
+            document.getElementById('background-audio').play();
             currentImage = displayImage();
         }
     </script>
